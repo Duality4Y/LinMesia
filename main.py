@@ -25,12 +25,31 @@ class PianoKey(object):
 
 
 class Octave(object):
-    def __init__(self, pos, width, height):
+    def __init__(self, pos):
         self.pos = pos
-        self.height = height
+        self.height = 100
+        self.keyWidth = 20
+        self.keyHeight = 100
+        self.length = 8
+        self.keys = []
+        # first add non sharp keys.
+        for i in range(0, self.length):
+            x, y = pos
+            # keypos = (x, y + (i * self.keyWidth))
+            keypos = (i * self.keyWidth, y)
+            key = PianoKey(keypos, self.keyWidth, self.keyHeight, 0)
+            self.keys.append(key)
+        # # second add sharp keys.
+        # for i in range(0, self.length):
+        #     x, y = pos
+        #     keypos = (i * self.keyWidth + 10)
 
     def draw(self, screen):
-        pass
+        for key in self.keys:
+            key.draw(screen)
+        # key.draw(screen)
+        # skey.draw(screen)
+        # pass
 
 
 class Piano(object):
@@ -51,6 +70,9 @@ clock = pygame.time.Clock()
 key = PianoKey((10, 10), 20, 100, False)
 skey = PianoKey((20, 10), 20, 50, True)
 
+octave = Octave((0, 0))
+
+
 if __name__ == "__main__":
     while(1):
         for event in pygame.event.get():
@@ -65,7 +87,6 @@ if __name__ == "__main__":
                 pass
 
         screen.fill(GRAY)
-        key.draw(screen)
-        skey.draw(screen)
+        octave.draw(screen)
         pygame.display.flip()
         clock.tick(60)
