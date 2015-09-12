@@ -37,21 +37,15 @@ class PianoKey(object):
 
 
 class Octave(object):
-    def __init__(self, pos, width=None, height=None):
+    def __init__(self, pos, width=140, height=100, length=7):
         self.pos = pos
 
-        self.keyWidth = 20
-        self.keyHeight = 100
+        self.height = height
+        self.width = width
+        self.keyWidth = width / 7
+        self.keyHeight = height
 
-        self.length = 8
-        if height:
-            self.height = height
-        else:
-            self.height = 100
-        if width:
-            self.width = width
-        else:
-            self.width = self.keyWidth * self.length
+        self.length = 7
 
         self.keys = []
         self.placekeys()
@@ -69,10 +63,10 @@ class Octave(object):
             self.keys.append(key)
         # add sharp keys
         skeywidth = self.keyWidth * 0.6
-        skeyheight = self.keyHeight / 3
+        skeyheight = (self.keyHeight / 2) + 8
         # position is the position of key - half the sharp keys width.
         for i in range(1, self.length):
-            if i != 3 and i != 4:
+            if i != 3:
                 keypos = (x + (i * self.keyWidth - skeywidth / 2), y)
                 key = PianoKey(keypos, skeywidth, skeyheight, 1)
                 self.keys.append(key)
@@ -130,9 +124,9 @@ clock = pygame.time.Clock()
 key = PianoKey((10, 10), 20, 100, False)
 skey = PianoKey((20, 10), 20, 50, True)
 
-octave = Octave((0, 0))
-octave.setpos((0, height - octave.getheight()))
-octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
+octave = Octave((0, 0), width, height)
+# octave.setpos((0, height - octave.getheight()))
+# octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
 
 
 if __name__ == "__main__":
@@ -150,6 +144,6 @@ if __name__ == "__main__":
 
         screen.fill(GRAY)
         octave.draw(screen)
-        octavetwo.draw(screen)
+        # octavetwo.draw(screen)
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(20)

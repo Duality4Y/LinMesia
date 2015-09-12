@@ -1,0 +1,20 @@
+<!DOCTYPE patchbay>
+<patchbay version="0.3.11" name="LinMesia-Patch">
+ <output-sockets>
+  <socket exclusive="off" client="fluidsynth" type="jack-audio" name="Synth By Python Code">
+   <plug>l_00</plug>
+   <plug>r_00</plug>
+  </socket>
+ </output-sockets>
+ <input-sockets>
+  <socket exclusive="off" client="system" type="jack-audio" name="system sound">
+   <plug>playback_1</plug>
+   <plug>playback_2</plug>
+  </socket>
+ </input-sockets>
+ <slots/>
+ <cables>
+  <cable output="Synth By Python Code" input="system sound" type="jack-audio"/>
+ </cables>
+</patchbay>
+
