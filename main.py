@@ -18,12 +18,17 @@ pygame.display.set_caption("LinMesia")
 
 clock = pygame.time.Clock()
 
+banknum = 0
+# presetnum sets the instrument
+presetnum = 0
+channel = 0
+
 soundfont = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
 fs = fluidsynth.Synth()
 fs.start()
 
 sfid = fs.sfload(soundfont)
-fs.program_select(0, sfid, 0, 0)
+fs.program_select(channel, sfid, banknum, presetnum)
 
 sharpBasePos = [1, 3, 6, 8, 10]
 noteBasePos = [0, 2, 4, 5, 7, 9, 11]
@@ -224,6 +229,11 @@ if __name__ == "__main__":
                 pygame.quit()
                 sys.exit(0)
             elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    presetnum += 1
+                elif event.key == pygame.K_DOWN:
+                    presetnum -= 1
+                fs.program_select(channel, sfid, banknum, presetnum)
                 piano.handleInput(event)
             elif event.type == pygame.KEYUP:
                 piano.handleInput(event)
