@@ -1,5 +1,7 @@
 import pygame
+from pygame.locals import *
 import sys
+import fluidsynth
 
 
 BLACK = (0, 0, 0)
@@ -11,26 +13,38 @@ GRAY = (128, 128, 128)
 
 
 class PianoKey(object):
-    def __init__(self, pos, width, height, is_sharp):
+    def __init__(self, pos, width, height, is_sharp, keymap=None):
         self.pos = pos
         self.width = width
         self.height = height
-        self.baseColor = WHITE
-        self.color = WHITE
+        self.hitColor = GREEN
+        if(is_sharp):
+            self.normColor = BLACK
+        else:
+            self.normColor = WHITE
+        self.color = self.normColor
         self.is_sharp = is_sharp
+        self.keymap = keymap
 
     def draw(self, screen):
         x, y = self.pos
         rect = (x, y, self.width, self.height)
         if self.is_sharp:
-            pygame.draw.rect(screen, BLACK, rect, 0)
-            pygame.draw.rect(screen, GRAY, rect, 1)
+            pygame.draw.rect(screen, self.color, rect, 0)
+            pygame.draw.rect(screen, BLACK, rect, 1)
         else:
-            pygame.draw.rect(screen, WHITE, rect, 0)
+            pygame.draw.rect(screen, self.color, rect, 0)
             pygame.draw.rect(screen, BLACK, rect, 1)
 
     def handleInput(self, input):
-        pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == self.keymap:
+                self.color = self.hitColor
+                print("key pressed: %d" % (self.keymap))
+        elif event.type == pygame.KEYUP:
+            if event.key == self.keymap:
+                self.color = self.normColor
+                print("key released: %d" % (self.keymap))
 
     def setpos(self, pos):
         self.pos = pos
@@ -47,39 +61,56 @@ class Octave(object):
 
         self.length = 7
 
-        self.keys = []
+        # map to values. last 5 are sharps
+        self.keymap = ['a', 's', 'd', 'f', 'g', 'h', 'j',
+                       'w', 'e', 't', 'y', 'u']
+        for i, value in enumerate(self.keymap):
+            self.keymap[i] = ord(value)
+
+        self.keys = {}
         self.placekeys()
 
     def placekeys(self):
         # if keys already exist delete them
         if len(self.keys):
             self.keys = []
+        # keep track on which keys we are.
+        keynum = 0
         # first add non sharp keys.
         x, y = self.pos
         for i in range(0, self.length):
             # keypos = (x, y + (i * self.keyWidth))
             keypos = (x + (i * self.keyWidth), y)
-            key = PianoKey(keypos, self.keyWidth, self.keyHeight, 0)
-            self.keys.append(key)
-        # add sharp keys
+            print(keynum)
+            key = PianoKey(keypos, self.keyWidth, self.keyHeight, 0,
+                           self.keymap[keynum])
+            self.keys[keynum] = key
+            keynum += 1
+            # self.keys.append(key)
+
+        # add sharp keys, note last 5 keys are sharps
         skeywidth = self.keyWidth * 0.6
         skeyheight = (self.keyHeight / 2) + 8
         # position is the position of key - half the sharp keys width.
         for i in range(1, self.length):
             if i != 3:
                 keypos = (x + (i * self.keyWidth - skeywidth / 2), y)
-                key = PianoKey(keypos, skeywidth, skeyheight, 1)
-                self.keys.append(key)
+                key = PianoKey(keypos, skeywidth, skeyheight, 1,
+                               self.keymap[keynum])
+                self.keys[keynum] = key
+                keynum += 1
+                # self.keys.append(key)
 
     def draw(self, screen):
         for key in self.keys:
-            key.draw(screen)
+            self.keys[key].draw(screen)
         # key.draw(screen)
         # skey.draw(screen)
         # pass
 
     def handleInput(self, input):
-        pass
+        for key in self.keys:
+            self.keys[key].handleInput(input)
 
     def getpos(self):
         return self.pos
@@ -113,9 +144,8 @@ class Piano(object):
     def handleInput(self, input):
         pass
 
-pygame.init()
-
 size = width, height = (800, 700)
+pygame.display.init()
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("LinMesia")
 
@@ -124,8 +154,8 @@ clock = pygame.time.Clock()
 key = PianoKey((10, 10), 20, 100, False)
 skey = PianoKey((20, 10), 20, 50, True)
 
-octave = Octave((0, 0), width, height)
-# octave.setpos((0, height - octave.getheight()))
+octaveHeight = int(height * 0.3)
+octave = Octave((0, height - octaveHeight), width, octaveHeight)
 # octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
 
 
@@ -138,7 +168,7 @@ if __name__ == "__main__":
             elif event.type == pygame.KEYDOWN:
                 octave.handleInput(event)
             elif event.type == pygame.KEYUP:
-                pass
+                octave.handleInput(event)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pass
 
