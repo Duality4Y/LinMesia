@@ -25,9 +25,12 @@ fs.start()
 sfid = fs.sfload(soundfont)
 fs.program_select(0, sfid, 0, 0)
 
+sharpBasePos = [1, 3, 6, 8, 10]
+noteBasePos = [0, 2, 4, 5, 7, 9, 11]
+
 
 class PianoKey(object):
-    def __init__(self, pos, width, height, is_sharp, keymap=None):
+    def __init__(self, pos, width, height, is_sharp, note, keymap=None):
         self.pos = pos
         self.width = width
         self.height = height
@@ -42,8 +45,8 @@ class PianoKey(object):
         self.is_sharp = is_sharp
         self.keymap = keymap
         self.channel = 0
-        self.note = 60
-        self.velocity = 30
+        self.note = note
+        self.velocity = 100
         self.synth = fs
 
     def draw(self, screen):
@@ -62,10 +65,12 @@ class PianoKey(object):
                 self.color = self.hitColor
                 self.synth.noteon(self.channel, self.note, self.velocity)
                 print("key pressed: %d" % (self.keymap))
-                print("Channel: %d, Note: %d, Velocity: %d")
+                print("Channel: %d, Note: %d, Velocity: %d" %
+                      (self.channel, self.note, self.velocity))
         elif event.type == pygame.KEYUP:
             if event.key == self.keymap:
                 self.color = self.normColor
+                self.synth.noteoff(self.channel, self.note)
                 print("key released: %d" % (self.keymap))
 
     def setpos(self, pos):
@@ -73,7 +78,7 @@ class PianoKey(object):
 
 
 class Octave(object):
-    def __init__(self, pos, width=140, height=100, length=7):
+    def __init__(self, pos=(0, 0), width=140, height=100, length=7, kmap=None):
         self.pos = pos
 
         self.height = height
@@ -82,20 +87,36 @@ class Octave(object):
         self.keyHeight = height
 
         self.length = 7
+        self.octaveStart = 60
+
+        # map notes onto correct values.
+        self.sharpNotes = []
+        for i in sharpBasePos:
+            self.sharpNotes.append(self.octaveStart + i)
+        print(self.sharpNotes)
+
+        self.notes = []
+        for i in noteBasePos:
+            self.notes.append(self.octaveStart + i)
+        print(self.notes)
 
         # map to values. last 5 are sharps
-        self.keymap = ['a', 's', 'd', 'f', 'g', 'h', 'j',
-                       'w', 'e', 't', 'y', 'u']
+        if not kmap:
+            self.keymap = ['a', 's', 'd', 'f', 'g', 'h', 'j',
+                           'w', 'e', 't', 'y', 'u']
+        else:
+            self.keymap = kmap
         for i, value in enumerate(self.keymap):
             self.keymap[i] = ord(value)
 
         self.keys = {}
-        self.placekeys()
+        self.setupkeys()
 
-    def placekeys(self):
+    def setupkeys(self):
         # if keys already exist delete them
         if len(self.keys):
             self.keys = []
+        # setup keys and give them thier notes and keymaps.
         # keep track on which keys we are.
         keynum = 0
         # first add non sharp keys.
@@ -103,25 +124,25 @@ class Octave(object):
         for i in range(0, self.length):
             # keypos = (x, y + (i * self.keyWidth))
             keypos = (x + (i * self.keyWidth), y)
-            print(keynum)
             key = PianoKey(keypos, self.keyWidth, self.keyHeight, 0,
-                           self.keymap[keynum])
+                           self.notes[i], self.keymap[keynum])
             self.keys[keynum] = key
             keynum += 1
-            # self.keys.append(key)
 
         # add sharp keys, note last 5 keys are sharps
         skeywidth = self.keyWidth * 0.6
         skeyheight = (self.keyHeight / 2) + 8
+        # keep track of note position for sharp note mapping
+        note_pos = 0
         # position is the position of key - half the sharp keys width.
         for i in range(1, self.length):
             if i != 3:
                 keypos = (x + (i * self.keyWidth - skeywidth / 2), y)
                 key = PianoKey(keypos, skeywidth, skeyheight, 1,
-                               self.keymap[keynum])
+                               self.sharpNotes[note_pos], self.keymap[keynum])
                 self.keys[keynum] = key
                 keynum += 1
-                # self.keys.append(key)
+                note_pos += 1
 
     def draw(self, screen):
         for key in self.keys:
@@ -143,36 +164,58 @@ class Octave(object):
     def getheight(self):
         return self.height
 
+    def getOctaveStart(self):
+        return self.octaveStart
+
     def setpos(self, pos):
         self.pos = pos
-        self.placekeys()
+        self.setupkeys()
 
     def setwidth(self, width):
         self.width = width
-        self.placekeys()
+        self.setupkeys()
 
     def setheight(self, height):
         self.height = height
-        self.placekeys()
+        self.setupkeys()
+
+    def setOctaveStart(self, start):
+        self.octaveStart = start
+        self.setupKeys()
 
 
 class Piano(object):
-    def __init__(self, number_octaves):
-        self.num_octaves = number_octaves
+    def __init__(self, start=0, numOctaves=1, screen=None):
+        self.start = start
+        self.numOctaves = numOctaves
+
+        if screen:
+            self.screen = screen
+
+            width, height = self.screen.get_size()
+            self.screenWidth = width
+            self.screenHeight = height
+
+            self.octaves = []
+            # Octave(self, pos, width=140, height=100, length=7, kmap=None)
+            for i in range(0, self.numOctaves):
+                self.octaves.append(Octave())
+        else:
+            self.octaves = None
 
     def draw(self, screen):
-        pass
+        for octave in self.octaves:
+            octave.draw(screen)
 
-    def handleInput(self, input):
-        pass
+    def handleInput(self, events):
+        for octave in self.octaves:
+            octave.handleInput(events)
 
-
-key = PianoKey((10, 10), 20, 100, False)
-skey = PianoKey((20, 10), 20, 50, True)
-
-octaveHeight = int(140)
-octave = Octave((0, height - octaveHeight), 200, octaveHeight)
+# octaveHeight = int(140)
+# octave = Octave((0, height - octaveHeight), 200, octaveHeight)
 # octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
+
+piano = Piano(start=24, numOctaves=2, screen=screen)
 
 if __name__ == "__main__":
     while(1):
@@ -181,14 +224,13 @@ if __name__ == "__main__":
                 pygame.quit()
                 sys.exit(0)
             elif event.type == pygame.KEYDOWN:
-                octave.handleInput(event)
+                piano.handleInput(event)
             elif event.type == pygame.KEYUP:
-                octave.handleInput(event)
+                piano.handleInput(event)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pass
 
         screen.fill(GRAY)
-        octave.draw(screen)
-        # octavetwo.draw(screen)
+        piano.draw(screen)
         pygame.display.flip()
         clock.tick(20)
