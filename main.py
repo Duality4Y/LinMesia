@@ -11,20 +11,40 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 GRAY = (128, 128, 128)
 
+size = width, height = (800, 700)
+pygame.display.init()
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("LinMesia")
+
+clock = pygame.time.Clock()
+
+soundfont = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+fs = fluidsynth.Synth()
+fs.start()
+
+sfid = fs.sfload(soundfont)
+fs.program_select(0, sfid, 0, 0)
+
 
 class PianoKey(object):
     def __init__(self, pos, width, height, is_sharp, keymap=None):
         self.pos = pos
         self.width = width
         self.height = height
+
         self.hitColor = GREEN
         if(is_sharp):
             self.normColor = BLACK
         else:
             self.normColor = WHITE
         self.color = self.normColor
+
         self.is_sharp = is_sharp
         self.keymap = keymap
+        self.channel = 0
+        self.note = 60
+        self.velocity = 30
+        self.synth = fs
 
     def draw(self, screen):
         x, y = self.pos
@@ -40,7 +60,9 @@ class PianoKey(object):
         if event.type == pygame.KEYDOWN:
             if event.key == self.keymap:
                 self.color = self.hitColor
+                self.synth.noteon(self.channel, self.note, self.velocity)
                 print("key pressed: %d" % (self.keymap))
+                print("Channel: %d, Note: %d, Velocity: %d")
         elif event.type == pygame.KEYUP:
             if event.key == self.keymap:
                 self.color = self.normColor
@@ -144,20 +166,13 @@ class Piano(object):
     def handleInput(self, input):
         pass
 
-size = width, height = (800, 700)
-pygame.display.init()
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("LinMesia")
-
-clock = pygame.time.Clock()
 
 key = PianoKey((10, 10), 20, 100, False)
 skey = PianoKey((20, 10), 20, 50, True)
 
-octaveHeight = int(height * 0.3)
-octave = Octave((0, height - octaveHeight), width, octaveHeight)
+octaveHeight = int(140)
+octave = Octave((0, height - octaveHeight), 200, octaveHeight)
 # octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
-
 
 if __name__ == "__main__":
     while(1):
