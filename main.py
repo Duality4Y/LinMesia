@@ -1,6 +1,8 @@
+
+import sys
+import os
 import pygame
 from pygame.locals import *
-import sys
 from mingus.containers import Note
 from mingus.midi import fluidsynth
 
@@ -236,6 +238,7 @@ class Piano(object):
 piano = Piano(start=24, numOctaves=1, screen=screen)
 
 if __name__ == "__main__":
+    os.nice(19)
     while(1):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
