@@ -1,7 +1,8 @@
 import pygame
 from pygame.locals import *
 import sys
-import fluidsynth
+from mingus.containers import Note
+from mingus.midi import fluidsynth
 
 
 BLACK = (0, 0, 0)
@@ -18,17 +19,20 @@ pygame.display.set_caption("LinMesia")
 
 clock = pygame.time.Clock()
 
-banknum = 0
-# presetnum sets the instrument
-presetnum = 0
-channel = 0
+fluidsynth.init("/usr/share/sounds/sf2/FluidR3_GM.sf2", "alsa")
+fluidsynth.set_instrument(0, 0)
 
-soundfont = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
-fs = fluidsynth.Synth()
-fs.start()
+# banknum = 0
+# # presetnum sets the instrument
+# presetnum = 0
+# channel = 0
 
-sfid = fs.sfload(soundfont)
-fs.program_select(channel, sfid, banknum, presetnum)
+# soundfont = "/usr/share/sounds/sf2/FluidR3_GM.sf2"
+# fs = fluidsynth.Synth()
+# fs.start()
+
+# sfid = fs.sfload(soundfont)
+# fs.program_select(channel, sfid, banknum, presetnum)
 
 sharpBasePos = [1, 3, 6, 8, 10]
 noteBasePos = [0, 2, 4, 5, 7, 9, 11]
@@ -52,7 +56,7 @@ class PianoKey(object):
         self.channel = 0
         self.note = note
         self.velocity = 100
-        self.synth = fs
+        self.synth = fluidsynth
 
     def draw(self, screen):
         x, y = self.pos
@@ -68,14 +72,17 @@ class PianoKey(object):
         if event.type == pygame.KEYDOWN:
             if event.key == self.keymap:
                 self.color = self.hitColor
-                self.synth.noteon(self.channel, self.note, self.velocity)
+                # self.synth.noteon(self.channel, self.note, self.velocity)
+                self.synth.play_Note(Note(self.note), self.channel,
+                                     self.velocity)
                 print("key pressed: %d" % (self.keymap))
                 print("Channel: %d, Note: %d, Velocity: %d" %
                       (self.channel, self.note, self.velocity))
         elif event.type == pygame.KEYUP:
             if event.key == self.keymap:
                 self.color = self.normColor
-                self.synth.noteoff(self.channel, self.note)
+                # self.synth.noteoff(self.channel, self.note)
+                self.synth.stop_Note(self.note, self.channel)
                 print("key released: %d" % (self.keymap))
 
     def setpos(self, pos):
@@ -202,9 +209,15 @@ class Piano(object):
             self.screenHeight = height
 
             self.octaves = []
+            octaveHeight = 100
+            octaveWidth = self.screenWidth / numOctaves
             # Octave(self, pos, width=140, height=100, length=7, kmap=None)
             for i in range(0, self.numOctaves):
-                self.octaves.append(Octave())
+                if(not len(self.octaves)):
+                    self.octaves.append(Octave((0, self.screenHeight - 100)))
+                else:
+                    x, y = self.octaves[i - 1].getpos()
+                    self.octaves.append(Octave())
         else:
             self.octaves = None
 
@@ -220,7 +233,7 @@ class Piano(object):
 # octave = Octave((0, height - octaveHeight), 200, octaveHeight)
 # octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
 
-piano = Piano(start=24, numOctaves=2, screen=screen)
+piano = Piano(start=24, numOctaves=1, screen=screen)
 
 if __name__ == "__main__":
     while(1):
@@ -233,7 +246,7 @@ if __name__ == "__main__":
                     presetnum += 1
                 elif event.key == pygame.K_DOWN:
                     presetnum -= 1
-                fs.program_select(channel, sfid, banknum, presetnum)
+                # fs.program_select(channel, sfid, banknum, presetnum)
                 piano.handleInput(event)
             elif event.type == pygame.KEYUP:
                 piano.handleInput(event)
