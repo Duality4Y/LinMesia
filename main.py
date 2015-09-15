@@ -21,7 +21,7 @@ pygame.display.set_caption("LinMesia")
 
 clock = pygame.time.Clock()
 
-fluidsynth.init("/usr/share/sounds/sf2/FluidR3_GM.sf2", "alsa")
+fluidsynth.init("/usr/share/sounds/sf2/FluidR3_GM.sf2", "jack")
 fluidsynth.set_instrument(0, 0)
 
 # banknum = 0
@@ -35,6 +35,14 @@ fluidsynth.set_instrument(0, 0)
 
 # sfid = fs.sfload(soundfont)
 # fs.program_select(channel, sfid, banknum, presetnum)
+
+pianokeymap = [['q', 'w', 'e', 'r', 't', 'y', 'u',
+                '2', '3', '5', '6', '7'],
+               ['i', 'o', 'p', '[', ']', '\\', 'z',
+                '9', '0', '-', '=', 'a']]
+
+# pianokeymap = [['a', 's', 'd', 'f', 'g', 'h', 'j',
+#                 'w', 'e', 't', 'y', 'u'], []]
 
 sharpBasePos = [1, 3, 6, 8, 10]
 noteBasePos = [0, 2, 4, 5, 7, 9, 11]
@@ -92,7 +100,8 @@ class PianoKey(object):
 
 
 class Octave(object):
-    def __init__(self, pos=(0, 0), width=140, height=100, length=7, kmap=None):
+    def __init__(self, pos=(0, 0), width=140, height=100,
+                 start=0, keymap=None):
         self.pos = pos
 
         self.height = height
@@ -101,7 +110,7 @@ class Octave(object):
         self.keyHeight = height
 
         self.length = 7
-        self.octaveStart = 60
+        self.octaveStart = start
 
         # map notes onto correct values.
         self.sharpNotes = []
@@ -115,13 +124,13 @@ class Octave(object):
         print(self.notes)
 
         # map to values. last 5 are sharps
-        if not kmap:
-            self.keymap = ['a', 's', 'd', 'f', 'g', 'h', 'j',
-                           'w', 'e', 't', 'y', 'u']
+        self.keymap = keymap
+        print("keymap: " + str(keymap))
+        if self.keymap:
+            for i, value in enumerate(self.keymap):
+                self.keymap[i] = ord(value)
         else:
-            self.keymap = kmap
-        for i, value in enumerate(self.keymap):
-            self.keymap[i] = ord(value)
+            self.keymap = [''] * 12
 
         self.keys = {}
         self.setupkeys()
@@ -199,9 +208,9 @@ class Octave(object):
 
 
 class Piano(object):
-    def __init__(self, start=0, numOctaves=1, screen=None):
+    def __init__(self, start=0, numoctaves=1, screen=None):
         self.start = start
-        self.numOctaves = numOctaves
+        self.numoctaves = numoctaves
 
         if screen:
             self.screen = screen
@@ -211,15 +220,28 @@ class Piano(object):
             self.screenHeight = height
 
             self.octaves = []
-            octaveHeight = 100
-            octaveWidth = self.screenWidth / numOctaves
-            # Octave(self, pos, width=140, height=100, length=7, kmap=None)
-            for i in range(0, self.numOctaves):
+            octaveheight = 100
+            octavewidth = self.screenWidth / numoctaves
+            print(octavewidth)
+            print("octavewidth: %d" % (octavewidth))
+            # Octave(self, pos, width=140, height=100, length=7, keymap=None)
+            for i in range(0, self.numoctaves):
                 if(not len(self.octaves)):
-                    self.octaves.append(Octave((0, self.screenHeight - 100)))
+                    octave = Octave((0, self.screenHeight - octaveheight),
+                                    octavewidth, octaveheight,
+                                    start=self.start,
+                                    keymap=pianokeymap[i])
+                    self.octaves.append(octave)
                 else:
-                    x, y = self.octaves[i - 1].getpos()
-                    self.octaves.append(Octave())
+                    previous_octave = self.octaves[i - 1]
+                    x, y = previous_octave.getpos()
+                    octavewidth = previous_octave.getwidth()
+                    octaveheight = previous_octave.getheight()
+                    xoffset = x + (i * octavewidth)
+                    self.octaves.append(Octave((x + xoffset, y),
+                                        octavewidth, octaveheight,
+                                        start=self.start + (i * 12),
+                                        keymap=pianokeymap[i]))
         else:
             self.octaves = None
 
@@ -235,7 +257,7 @@ class Piano(object):
 # octave = Octave((0, height - octaveHeight), 200, octaveHeight)
 # octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
 
-piano = Piano(start=24, numOctaves=1, screen=screen)
+piano = Piano(start=24, numoctaves=2, screen=screen)
 
 if __name__ == "__main__":
     os.nice(19)
