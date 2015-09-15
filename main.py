@@ -257,7 +257,7 @@ class Piano(object):
 # octave = Octave((0, height - octaveHeight), 200, octaveHeight)
 # octavetwo = Octave((octave.getwidth(), height - octave.getheight()))
 
-piano = Piano(start=24, numoctaves=2, screen=screen)
+piano = Piano(start=36, numoctaves=2, screen=screen)
 
 if __name__ == "__main__":
     os.nice(19)
