@@ -5,8 +5,14 @@
    <plug>l_00</plug>
    <plug>r_00</plug>
   </socket>
+  <socket exclusive="off" client="Hua Xing" type="alsa-midi" name="Output Socket 2">
+   <plug>Hua Xing MIDI 1</plug>
+  </socket>
  </output-sockets>
  <input-sockets>
+  <socket exclusive="off" client="FLUID Synth \([0-9]+\)" type="alsa-midi" name="Input Socket 2">
+   <plug>Synth input port \([0-9]+:0\)</plug>
+  </socket>
   <socket exclusive="off" client="system" type="jack-audio" name="system sound">
    <plug>playback_1</plug>
    <plug>playback_2</plug>
@@ -15,6 +21,7 @@
  <slots/>
  <cables>
   <cable output="Synth By Python Code" input="system sound" type="jack-audio"/>
+  <cable output="Output Socket 2" input="Input Socket 2" type="alsa-midi"/>
  </cables>
 </patchbay>
 

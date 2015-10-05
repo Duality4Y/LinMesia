@@ -1,0 +1,11 @@
+
+MIDI parsing library for Python.
+By Sean D. Spencer
+sean underscore don 4 at lycos dot com
+
+Loosely based on Will Ware's midi.py and the code from John Walker's midicsv.
+
+EXAMPLES:
+
+See example.py
+
