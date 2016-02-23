@@ -1,21 +1,36 @@
 #! python
-
-import sys
 from glob import glob
 
 build_dir = 'build/'
 src_dir = 'src/'
+lib_dir = 'lib/'
 include_dir = 'include/'
-libs = glob('lib/*.a')
+local_libs = ['midifile']
 
-obj_target = []
-src_files = glob(src_dir+'*.cpp')
+ccflags = ['-Werror']
+ccflags.append('-std=c++11')
+
+env = Environment(CC='gcc')
+
+env.Append(CCFLAGS=ccflags)
+env.Append(CPPPATH=[include_dir])
+
+for lib in libs:
+    env.Append(CPPPATH=[lib_dir + lib + '/' + 'include/'])
+    env.Append(LIBS=[lib])
+    env.Append(LIBPATH=[lib_dir + lib + '/' + 'lib/'])
+
+# collect source and make object names for them.
+obj_targets = []
+src_files = glob(src_dir + '*.cpp')
 for src in src_files:
     target = src.replace('.cpp', '.o')
-    obj_target.append(build_dir+target)
+    obj_targets.append(build_dir + target)
 
-objects = Object(target=obj_target, source=src_files)
+# print("obj_target: %s, src_files: %s \n" % (str(obj_targets), str(src_files)))
 
-ccflags = '-Werror'
+objects = []
+for (obj_target, src_file) in zip(obj_targets, src_files):
+    objects.append(env.Object(target=obj_target, source=src_file))
 
-Program(target=build_dir+'LinMesia', source=objects)
+env.Program(target=build_dir+'LinMesia', source=objects)
