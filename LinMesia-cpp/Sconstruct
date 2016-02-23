@@ -1,0 +1,21 @@
+#! python
+
+import sys
+from glob import glob
+
+build_dir = 'build/'
+src_dir = 'src/'
+include_dir = 'include/'
+libs = glob('lib/*.a')
+
+obj_target = []
+src_files = glob(src_dir+'*.cpp')
+for src in src_files:
+    target = src.replace('.cpp', '.o')
+    obj_target.append(build_dir+target)
+
+objects = Object(target=obj_target, source=src_files)
+
+ccflags = '-Werror'
+
+Program(target=build_dir+'LinMesia', source=objects)
