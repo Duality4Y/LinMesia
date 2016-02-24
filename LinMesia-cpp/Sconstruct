@@ -10,15 +10,27 @@ local_libs = ['midifile']
 ccflags = ['-Werror']
 ccflags.append('-std=c++11')
 
+
 env = Environment(CC='gcc')
 
 env.Append(CCFLAGS=ccflags)
 env.Append(CPPPATH=[include_dir])
 
+# run for local libs
 for lib in local_libs:
     env.Append(CPPPATH=[lib_dir + lib + '/' + 'include/'])
     env.Append(LIBS=[lib])
     env.Append(LIBPATH=[lib_dir + lib + '/' + 'lib/'])
+
+# sdl
+env.Append(CCFLAGS='-L/usr/local/lib -Wl,-rpath,/usr/local/lib -Wl,--enable-new-dtags -Wl,--no-undefined -lm -ldl -lpthread -lrt')
+env.Append(CPPPATH=['/usr/local/include/SDL2/'])
+env.Append(LIBS=['SDL2'])
+env.Append(LIBPATH=['/usr/local/lib/'])
+
+print(env['CPPPATH'])
+print(env['LIBS'])
+print(env['LIBPATH'])
 
 # collect source and make object names for them.
 obj_targets = []
