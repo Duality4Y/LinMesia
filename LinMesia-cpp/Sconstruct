@@ -1,10 +1,11 @@
-#! python
+#! python2
 from glob import glob
 
 build_dir = 'build/'
 src_dir = 'src/'
 lib_dir = 'lib/'
 include_dir = 'include/'
+
 local_libs = ['midifile']
 
 ccflags = ['-Werror']

@@ -1,0 +1,6 @@
+import subprocess
+
+if GetOption("clean"):
+    subprocess.call(['scons', '-C', '../', '-c', '-j4'], shell=False)
+else:
+    subprocess.call(['scons', '-C', '../', '-j4'], shell=False)
