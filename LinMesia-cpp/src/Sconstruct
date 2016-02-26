@@ -1,6 +1,13 @@
 import subprocess
+import multiprocessing
+
+numCores = multiprocessing.cpu_count()
+
+jobs = '-j' + str(numCores + 2)
+
+print("jobs: ", jobs)
 
 if GetOption("clean"):
-    subprocess.call(['scons', '-C', '../', '-c', '-j4'], shell=False)
+    subprocess.call(['scons', '-C', '../', '-c', jobs], shell=False)
 else:
-    subprocess.call(['scons', '-C', '../', '-j4'], shell=False)
+    subprocess.call(['scons', '-C', '../', jobs], shell=False)

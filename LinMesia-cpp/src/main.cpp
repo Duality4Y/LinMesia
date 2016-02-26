@@ -26,7 +26,14 @@ int main(int argc, char** argv)
     {
         printf("SDL could not create a window. %s\n",
                SDL_GetError());
+        return 1;
     }
+
+    screenSurface= SDL_GetWindowSurface(window);
+
+    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0xff, 0xff));
+
+    SDL_Delay(2000);
 
     return 0;
 }
