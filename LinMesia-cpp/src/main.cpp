@@ -1,3 +1,5 @@
+/*sdl code*/
+
 #include <stdio.h>
 #include <SDL.h>
 
