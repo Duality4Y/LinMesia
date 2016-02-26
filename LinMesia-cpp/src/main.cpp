@@ -30,8 +30,11 @@ int main(int argc, char** argv)
     }
 
     screenSurface= SDL_GetWindowSurface(window);
-
+    printf("width: %d\n", screenSurface->w);
+    printf("height: %d\n", screenSurface->h);
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0xff, 0xff));
+
+    SDL_UpdateWindowSurface(window);
 
     SDL_Delay(2000);
 
