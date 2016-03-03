@@ -1,44 +1,93 @@
-/*sdl code*/
-
-#include <stdio.h>
 #include <SDL.h>
 
-#include "MidiFile.h"
+class Game
+{
+public:
+    Game();
+    int init();
+    void run();
+    void quit();
+private:
+    const int window_width = 800;
+    const int window_height = 600;
+    char window_title[50] = "LinMesia";
+    SDL_Window *window = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Event event = {0};
+    SDL_Color draw_color {0x00, 0x00, 0xFF, 0xFF};
+    bool running = true;
+};
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+Game::Game(){};
+
+int Game::init()
+{
+    bool res = SDL_Init(SDL_INIT_EVERYTHING);
+    if(res < 0)
+    {
+        SDL_Log("Failed to init. (\"%s\").\n", SDL_GetError());
+        return res;
+    }
+    window = SDL_CreateWindow(window_title,
+                              SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED,
+                              window_width,
+                              window_height,
+                              0);
+    if(window == NULL)
+    {
+        SDL_Log("Failed to create a window. (\"%s\").\n", SDL_GetError());
+        return -1;
+    }
+
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    if(renderer == NULL)
+    {
+        SDL_Log("Failed to create the renderer. (\"%s\").\n", SDL_GetError());
+        return -1;
+    }
+    return 0;
+}
+
+void Game::run()
+{
+    while(running)
+    {
+        while(SDL_PollEvent(&event))
+        {
+            if(event.type == SDL_QUIT)
+            {
+                running = false;
+            }
+            else if(event.type == SDL_KEYDOWN)
+            {
+                if(event.key.keysym.sym == SDLK_ESCAPE)
+                {
+                    running = false;
+                }
+            }
+        }
+    }
+}
+
+void Game::quit()
+{
+    if(window)
+    {
+        SDL_DestroyWindow(window);
+    }
+    if(renderer)
+    {
+        SDL_DestroyRenderer(renderer);
+    }
+    SDL_Quit();
+}
 
 int main(int argc, char** argv)
 {
-    SDL_Window* window = NULL;
-    SDL_Surface* screenSurface = NULL;
-
-    if(SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        printf("SDL could not initialize! SDL_Error: %s\n",
-               SDL_GetError());
-        return 1;
-    }
-
-    window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED, 
-                              SCREEN_WIDTH, SCREEN_HEIGHT,
-                              SDL_WINDOW_SHOWN);
-    if(window == NULL)
-    {
-        printf("SDL could not create a window. %s\n",
-               SDL_GetError());
-        return 1;
-    }
-
-    screenSurface= SDL_GetWindowSurface(window);
-    printf("width: %d\n", screenSurface->w);
-    printf("height: %d\n", screenSurface->h);
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xff, 0xff, 0xff));
-
-    SDL_UpdateWindowSurface(window);
-
-    SDL_Delay(2000);
-
+    Game game = Game();
+    if(game.init() < 0) return 1;
+    game.run();
+    game.quit();
     return 0;
 }
